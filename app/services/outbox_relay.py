@@ -1,12 +1,26 @@
 import asyncio
 from datetime import datetime, timedelta, timezone
 
+from faststream.rabbit import RabbitQueue
 from sqlalchemy import or_, select
 
 from app.core.config import settings
 from app.db.models import Outbox, OutboxStatus
 from app.db.session import SessionLocal
 from app.messaging.broker import broker
+
+QUEUE_SETTINGS: dict[str, RabbitQueue] = {
+    "payments.new": RabbitQueue(
+        "payments.new",
+        durable=True,
+        arguments={"x-message-ttl": 86400000},
+    ),
+    "payments.dlq": RabbitQueue(
+        "payments.dlq",
+        durable=True,
+        arguments={"x-message-ttl": 604800000},
+    ),
+}
 
 
 class OutboxRelay:
@@ -57,7 +71,8 @@ class OutboxRelay:
                     return
 
                 try:
-                    await broker.publish(message.payload, queue=message.topic)
+                    queue = QUEUE_SETTINGS.get(message.topic, message.topic)
+                    await broker.publish(message.payload, queue=queue)
                     message.status = OutboxStatus.published
                     message.published_at = datetime.now(timezone.utc)
                     message.next_retry_at = None

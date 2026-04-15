@@ -6,6 +6,7 @@ from uuid import UUID
 
 from sqlalchemy import select
 from sqlalchemy.ext.asyncio import AsyncSession
+from faststream.rabbit import RabbitQueue
 
 from app.db.models import Outbox, OutboxStatus, Payment, PaymentStatus
 from app.db.session import SessionLocal
@@ -94,7 +95,13 @@ async def _load_payment_for_webhook_retry(session: AsyncSession, payment_id: UUI
     return await session.scalar(stmt)
 
 
-@broker.subscriber("payments.new")
+@broker.subscriber(
+    RabbitQueue(
+        "payments.new",
+        durable=True,
+        arguments={"x-message-ttl": 86400000},
+    )
+)
 async def process_payment(message: dict) -> None:
     try:
         payment_id, attempt = _extract_message_data(message)
@@ -134,7 +141,13 @@ async def process_payment(message: dict) -> None:
             return
 
 
-@broker.subscriber("payments.dlq")
+@broker.subscriber(
+    RabbitQueue(
+        "payments.dlq",
+        durable=True,
+        arguments={"x-message-ttl": 604800000},
+    )
+)
 async def process_dead_letter(message: dict) -> None:
     metrics_store.dlq_consumed_total += 1
     logger.error("DLQ message consumed", extra={"dlq_message": message})
