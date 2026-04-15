@@ -25,19 +25,11 @@
 - `status_update_failed` — ошибка фиксации статуса платежа в БД
 - `webhook_delivery_failed` — неуспешная доставка webhook после лимита попыток
 
-## Локальный запуск через uv
+## Запуск в Docker
 
 ```bash
 cp .env.example .env
 # заполните .env реальными значениями API_KEY, DATABASE_URL, RABBITMQ_USER, RABBITMQ_PASSWORD, RABBITMQ_URL
-uv sync
-uv run pytest
-uv run uvicorn app.main:app --reload
-```
-
-## Запуск в Docker
-
-```bash
 docker compose up --build
 ```
 
