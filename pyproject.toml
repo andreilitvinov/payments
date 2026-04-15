@@ -1,0 +1,45 @@
+[project]
+name = "payments-service"
+version = "0.1.0"
+description = "Asynchronous payment processing service"
+readme = "README.md"
+requires-python = ">=3.12"
+dependencies = [
+    "alembic>=1.13.2",
+    "aiosqlite>=0.20.0",
+    "asyncpg>=0.30.0",
+    "fastapi>=0.115.0",
+    "faststream[rabbit]>=0.5.30",
+    "httpx>=0.28.0",
+    "psycopg2-binary>=2.9.9",
+    "pydantic-settings>=2.6.1",
+    "sqlalchemy>=2.0.36",
+    "tenacity>=9.0.0",
+    "uvicorn[standard]>=0.32.0",
+]
+
+[dependency-groups]
+dev = [
+    "pytest>=8.3.3",
+    "pytest-asyncio>=0.24.0",
+]
+
+[tool.pytest.ini_options]
+asyncio_mode = "auto"
+testpaths = ["tests"]
+
+[tool.ruff]
+line-length = 100
+
+[tool.uv.workspace]
+members = [
+    "test",
+]
+
+[build-system]
+requires = ["setuptools>=68", "wheel"]
+build-backend = "setuptools.build_meta"
+
+[tool.setuptools.packages.find]
+where = ["."]
+include = ["app*"]
