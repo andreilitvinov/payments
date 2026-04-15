@@ -18,12 +18,13 @@ depends_on = None
 def upgrade() -> None:
     payment_status = sa.Enum("pending", "succeeded", "failed", name="payment_status")
     outbox_status = sa.Enum("pending", "published", "failed", name="outbox_status")
+    currency_code = sa.Enum("RUB", "USD", "EUR", name="currency_code")
 
     op.create_table(
         "payments",
         sa.Column("id", postgresql.UUID(as_uuid=True), primary_key=True, nullable=False),
         sa.Column("amount", sa.Numeric(12, 2), nullable=False),
-        sa.Column("currency", sa.String(length=3), nullable=False),
+        sa.Column("currency", currency_code, nullable=False),
         sa.Column("description", sa.String(length=255), nullable=False),
         sa.Column("metadata", sa.JSON(), nullable=False),
         sa.Column("status", payment_status, nullable=False, server_default="pending"),
@@ -53,5 +54,6 @@ def downgrade() -> None:
     op.drop_table("outbox")
     op.drop_index("ix_payments_idempotency_key", table_name="payments")
     op.drop_table("payments")
+    sa.Enum(name="currency_code").drop(op.get_bind(), checkfirst=True)
     sa.Enum(name="outbox_status").drop(op.get_bind(), checkfirst=True)
     sa.Enum(name="payment_status").drop(op.get_bind(), checkfirst=True)

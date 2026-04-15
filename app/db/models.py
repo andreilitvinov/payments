@@ -18,6 +18,12 @@ class PaymentStatus(str, enum.Enum):
     failed = "failed"
 
 
+class Currency(str, enum.Enum):
+    RUB = "RUB"
+    USD = "USD"
+    EUR = "EUR"
+
+
 class OutboxStatus(str, enum.Enum):
     pending = "pending"
     published = "published"
@@ -29,7 +35,10 @@ class Payment(Base):
 
     id: Mapped[uuid.UUID] = mapped_column(UUID(as_uuid=True), primary_key=True, default=uuid.uuid4)
     amount: Mapped[Decimal] = mapped_column(Numeric(12, 2), nullable=False)
-    currency: Mapped[str] = mapped_column(String(3), nullable=False)
+    currency: Mapped[Currency] = mapped_column(
+        Enum(Currency, name="currency_code"),
+        nullable=False,
+    )
     description: Mapped[str] = mapped_column(String(255), nullable=False)
     metadata_json: Mapped[dict] = mapped_column("metadata", JSON, nullable=False, default=dict)
     status: Mapped[PaymentStatus] = mapped_column(

@@ -8,6 +8,8 @@ from uuid import UUID
 
 from pydantic import BaseModel, Field, HttpUrl, field_validator
 
+from app.db.models import Currency
+
 class PaymentStatusResponse(str, enum.Enum):
     pending = "pending"
     succeeded = "succeeded"
@@ -16,7 +18,7 @@ class PaymentStatusResponse(str, enum.Enum):
 
 class CreatePaymentRequest(BaseModel):
     amount: Decimal = Field(gt=0)
-    currency: str = Field(pattern="^(RUB|USD|EUR)$")
+    currency: Currency
     description: str = Field(min_length=1, max_length=255)
     metadata: dict[str, Any] = Field(default_factory=dict)
     webhook_url: HttpUrl
@@ -74,7 +76,7 @@ class PaymentAcceptedResponse(BaseModel):
 class PaymentResponse(BaseModel):
     id: UUID
     amount: Decimal
-    currency: str
+    currency: Currency
     description: str
     metadata: dict[str, Any]
     status: PaymentStatusResponse
